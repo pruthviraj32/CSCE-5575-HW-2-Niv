@@ -17,6 +17,7 @@ doesExist pnpm
 printf "\e[32m All the necessary tools are installed.\n\n\e[0m "
 
 mkdir -p chain-end
+mkdir -p front-end
 cd chain-end
 forge init . --no-commit
 forge install OpenZeppelin/openzeppelin-contracts --no-commit
