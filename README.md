@@ -65,10 +65,17 @@ constructor(address initialOwner) Ownable(initialOwner) {
   // Other initializations here
 }
 ```
+
 Since our constructor now has arguments, to create a smart contract using `Foundry`, you must use the following command:
 
 ```bash
 # Use the same account's address and private key
 forge create --rpc-url http://127.0.0.1:8545 --private-key <private_key> src/Counter.sol:Counter --constructor-args <deployer_account_address>
+```
+
+In order to send ETH to the functions that require it using Foundry, you can use this:
+
+```bash
+cast call <contract_address> "your_function()" --private-key <private_key> --value 0.001ether  # Or any other ether value
 ```
 
