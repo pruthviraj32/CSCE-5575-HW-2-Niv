@@ -12,7 +12,7 @@ The goal of the homework is to design a contract with some functionalities only 
 ### Chain-end
 Develop a smart contract with the "Lorem, ipsum, dolor, sit, amet, consectetur, adipiscing, elit, sed, do" array. Similar to the previous assignments, you will have a number variable, which will be used to control how the array gets sliced.
 
-The contract will be "Ownable".
+The contract will be "Ownable". Look up how inheritance works in Solidity.
 
 This time, you will have two functions to get slice of array:
 - firstNumElements
@@ -53,3 +53,23 @@ Any other dependencies should be installed by the script.
 - Payable functions emit events:
   - https://solidity-by-example.org/events/
   - https://www.tutorialspoint.com/solidity/solidity_events.htm
+ 
+# Helper Functions
+Due to a recent change in OppenZeppelin's `Ownable.sol`'s code, you have to initialize your constructor as follows:
+
+```solidity
+// Outside of constructor
+address currentOwner;
+
+constructor(address initialOwner) Ownable(initialOwner) {
+  // Other initializations here
+  currentOwner = initialOwner;
+}
+```
+Since our constructor now has arguments, to create a smart contract using `Foundry`, you must use the following command:
+
+```bash
+# Use the same account's address and private key
+forge create --rpc-url http://127.0.0.1:8545 --private-key <private_key> --constructor-args <deployer_account_address> src/Counter.sol:Counter
+```
+
