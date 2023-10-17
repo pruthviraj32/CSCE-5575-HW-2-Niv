@@ -58,12 +58,11 @@ Any other dependencies should be installed by the script.
 Due to a recent change in OppenZeppelin's `Ownable.sol`'s code, you have to initialize your constructor as follows:
 
 ```solidity
-// Outside of constructor
-address currentOwner;
+// We don't need to define an address variable for owner.
+// Ownable does this for us and you can get the value by calling the "owner" function.
 
 constructor(address initialOwner) Ownable(initialOwner) {
   // Other initializations here
-  currentOwner = initialOwner;
 }
 ```
 Since our constructor now has arguments, to create a smart contract using `Foundry`, you must use the following command:
