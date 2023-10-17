@@ -10,7 +10,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Project 1</h1>
+      <h1>Homework 2</h1>
       <br />
       {/* Start with the handleConnectWallet and the necessary useState functions.
       {address ? (
