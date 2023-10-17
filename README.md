@@ -69,6 +69,6 @@ Since our constructor now has arguments, to create a smart contract using `Found
 
 ```bash
 # Use the same account's address and private key
-forge create --rpc-url http://127.0.0.1:8545 --private-key <private_key> --constructor-args <deployer_account_address> src/Counter.sol:Counter
+forge create --rpc-url http://127.0.0.1:8545 --private-key <private_key> src/Counter.sol:Counter --constructor-args <deployer_account_address>
 ```
 
