@@ -203,9 +203,10 @@ h2 {
   border: 1px solid #f5c6cb;
 }
 
-.refresh-button {
-  display: block;
-  margin: 1rem auto 0;
+.refresh-button,
+.history-button {
+  flex: 1;
+  min-width: 200px;
   padding: 0.75rem 2rem;
   background: #6c757d;
   color: white;
@@ -217,11 +218,20 @@ h2 {
   transition: all 0.3s ease;
 }
 
+.history-button {
+  background: #667eea;
+}
+
 .refresh-button:hover:not(:disabled) {
   background: #5a6268;
 }
 
-.refresh-button:disabled {
+.history-button:hover:not(:disabled) {
+  background: #5568d3;
+}
+
+.refresh-button:disabled,
+.history-button:disabled {
   background: #ccc;
   cursor: not-allowed;
 }
@@ -235,6 +245,81 @@ h2 {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Transactions Section */
+.transactions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.transaction-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.transaction-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateX(4px);
+}
+
+.tx-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tx-row:last-child {
+  border-bottom: none;
+}
+
+.tx-label {
+  font-weight: 600;
+  color: #495057;
+  min-width: 100px;
+}
+
+.tx-value {
+  font-family: 'Courier New', monospace;
+  color: #212529;
+  text-align: right;
+  flex: 1;
+}
+
+.tx-method {
+  color: #667eea;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.tx-hash {
+  font-size: 0.85rem;
+  cursor: help;
+  color: #6c757d;
+}
+
+.tx-value-amount {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.tx-success {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.tx-failed {
+  color: #dc3545;
+  font-weight: 600;
 }
 
 @media (max-width: 768px) {
@@ -261,5 +346,15 @@ h2 {
   .input-group {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .tx-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tx-value {
+    text-align: left;
+    margin-top: 0.25rem;
   }
 }

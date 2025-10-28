@@ -33,6 +33,7 @@ function App() {
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
   const [connected, setConnected] = useState<boolean>(false);
+  const [transactions, setTransactions] = useState<any[]>([]);
 
   const handleConnect = async () => {
     try {
@@ -94,8 +95,9 @@ function App() {
     try {
       const tx = await contract.firstNumElements({ value: parseEther("0.001") });
       setMessage("Transaction sent! Waiting for confirmation...");
-      await tx.wait();
+      const receipt = await tx.wait();
       setMessage("Successfully called firstNumElements!");
+      addTransaction("firstNumElements()", receipt.hash, receipt.gasUsed.toString(), receipt.blockNumber, "0.001 ETH");
       await refreshData();
     } catch (error) {
       console.error("Error calling firstNumElements:", error);
@@ -113,8 +115,9 @@ function App() {
     try {
       const tx = await contract.lastNumElements({ value: parseEther("0.002") });
       setMessage("Transaction sent! Waiting for confirmation...");
-      await tx.wait();
+      const receipt = await tx.wait();
       setMessage("Successfully called lastNumElements!");
+      addTransaction("lastNumElements()", receipt.hash, receipt.gasUsed.toString(), receipt.blockNumber, "0.002 ETH");
       await refreshData();
     } catch (error) {
       console.error("Error calling lastNumElements:", error);
@@ -132,8 +135,9 @@ function App() {
     try {
       const tx = await contract.setNum(newNum);
       setMessage("Transaction sent! Waiting for confirmation...");
-      await tx.wait();
+      const receipt = await tx.wait();
       setMessage("Successfully updated num to " + newNum);
+      addTransaction(`setNum(${newNum})`, receipt.hash, receipt.gasUsed.toString(), receipt.blockNumber, "0 ETH");
       setNewNum("");
       await refreshData();
     } catch (error) {
@@ -152,12 +156,84 @@ function App() {
     try {
       const tx = await contract.withdrawFunds();
       setMessage("Transaction sent! Waiting for confirmation...");
-      await tx.wait();
+      const receipt = await tx.wait();
       setMessage("Successfully withdrew funds!");
+      addTransaction("withdrawFunds()", receipt.hash, receipt.gasUsed.toString(), receipt.blockNumber, contractBalance + " ETH");
       await refreshData();
     } catch (error) {
       console.error("Error withdrawing funds:", error);
       setMessage("Error: " + (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addTransaction = (method: string, hash: string, gasUsed: string, blockNumber: number, value: string) => {
+    const newTx = {
+      method,
+      hash: hash.substring(0, 10) + "..." + hash.substring(hash.length - 8),
+      fullHash: hash,
+      gasUsed,
+      blockNumber,
+      value,
+      timestamp: new Date().toLocaleTimeString()
+    };
+    setTransactions(prev => [newTx, ...prev]);
+  };
+
+  const loadTransactionHistory = async () => {
+    if (!provider) return;
+    
+    setLoading(true);
+    try {
+      const currentBlock = await provider.getBlockNumber();
+      const allTransactions = [];
+      
+      // Fetch transactions from all blocks
+      for (let i = 0; i <= currentBlock; i++) {
+        const block = await provider.getBlock(i, true);
+        if (block && block.transactions.length > 0) {
+          for (const txHash of block.transactions) {
+            const tx = await provider.getTransaction(txHash as string);
+            const receipt = await provider.getTransactionReceipt(txHash as string);
+            
+            // Only include transactions to our contract
+            if (tx && receipt && tx.to?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase()) {
+              let method = "unknown";
+              
+              // Decode method from transaction data
+              if (tx.data.startsWith("0x8da5cb5b")) method = "owner()";
+              else if (tx.data.startsWith("0x4e70b1dc")) method = "num()";
+              else if (tx.data.startsWith("0x924d1328")) method = "getWords()";
+              else if (tx.data.startsWith("0x6f9fb98a")) method = "getContractBalance()";
+              else if (tx.data.startsWith("0x3b72bb91")) method = "firstNumElements()";
+              else if (tx.data.startsWith("0x49e339b3")) method = "lastNumElements()";
+              else if (tx.data.startsWith("0xcd16ecbf")) method = "setNum()";
+              else if (tx.data.startsWith("0x24600fc3")) method = "withdrawFunds()";
+              
+              const txData = {
+                method,
+                hash: tx.hash.substring(0, 10) + "..." + tx.hash.substring(tx.hash.length - 8),
+                fullHash: tx.hash,
+                gasUsed: receipt.gasUsed.toString(),
+                blockNumber: receipt.blockNumber,
+                value: formatEther(tx.value) + " ETH",
+                timestamp: new Date(block.timestamp * 1000).toLocaleString(),
+                from: tx.from,
+                status: receipt.status === 1 ? "Success" : "Failed"
+              };
+              
+              allTransactions.push(txData);
+            }
+          }
+        }
+      }
+      
+      setTransactions(allTransactions.reverse()); // Most recent first
+      setMessage(`Loaded ${allTransactions.length} transactions from blockchain`);
+    } catch (error) {
+      console.error("Error loading transaction history:", error);
+      setMessage("Error loading transaction history");
     } finally {
       setLoading(false);
     }
@@ -273,9 +349,62 @@ function App() {
             </div>
           )}
 
-          <button onClick={refreshData} className="refresh-button" disabled={loading}>
-            Refresh Data
-          </button>
+          <div className="button-group">
+            <button onClick={refreshData} className="refresh-button" disabled={loading}>
+              Refresh Data
+            </button>
+            <button onClick={loadTransactionHistory} className="history-button" disabled={loading}>
+              Load Full Transaction History
+            </button>
+          </div>
+
+          {transactions.length > 0 && (
+            <div className="section">
+              <h2>Transaction History ({transactions.length} total)</h2>
+              <div className="transactions-container">
+                {transactions.map((tx, index) => (
+                  <div key={index} className="transaction-item">
+                    <div className="tx-row">
+                      <span className="tx-label">Method:</span>
+                      <span className="tx-value tx-method">{tx.method}</span>
+                    </div>
+                    <div className="tx-row">
+                      <span className="tx-label">Hash:</span>
+                      <span className="tx-value tx-hash" title={tx.fullHash}>{tx.hash}</span>
+                    </div>
+                    <div className="tx-row">
+                      <span className="tx-label">Block:</span>
+                      <span className="tx-value">#{tx.blockNumber}</span>
+                    </div>
+                    <div className="tx-row">
+                      <span className="tx-label">Gas Used:</span>
+                      <span className="tx-value">{tx.gasUsed}</span>
+                    </div>
+                    <div className="tx-row">
+                      <span className="tx-label">Value:</span>
+                      <span className="tx-value tx-value-amount">{tx.value}</span>
+                    </div>
+                    {tx.from && (
+                      <div className="tx-row">
+                        <span className="tx-label">From:</span>
+                        <span className="tx-value address">{tx.from.substring(0, 10) + "..." + tx.from.substring(tx.from.length - 8)}</span>
+                      </div>
+                    )}
+                    {tx.status && (
+                      <div className="tx-row">
+                        <span className="tx-label">Status:</span>
+                        <span className={`tx-value ${tx.status === 'Success' ? 'tx-success' : 'tx-failed'}`}>{tx.status}</span>
+                      </div>
+                    )}
+                    <div className="tx-row">
+                      <span className="tx-label">Time:</span>
+                      <span className="tx-value">{tx.timestamp}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
