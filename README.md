@@ -1,81 +1,179 @@
-# CSCE-5575-HW-2-Template <br /> Instructor: Beddhu Murali
-Second Homework template for blockchain course CSCE 4575/5575
+# CSCE-5575 Homework 2 - Ownable Smart Contract
 
-# Introduction
-In this homework, you will be using smart contracts provided by other parties in your smart contract. Think it as using libraries in programming languages such as Java or C++.
+A blockchain application demonstrating smart contract ownership, payable functions, and React-based web3 integration.
 
-The contract you will be using is `Ownable.sol` by OpenZeppelin. More info will be in the following section.
+## Project Overview
 
-The goal of the homework is to design a contract with some functionalities only accessible/callable by the owner of the contract. You will also learn about payment to and from the smart contract.
+This project implements an Ownable smart contract with:
+- OpenZeppelin's Ownable inheritance for access control
+- Payable functions for array slicing operations
+- Owner-only administrative functions
+- React front-end for contract interaction
 
-# Tasks
-### Chain-end
-Develop a smart contract with the "Lorem, ipsum, dolor, sit, amet, consectetur, adipiscing, elit, sed, do" array. Similar to the previous assignments, you will have a number variable, which will be used to control how the array gets sliced.
+## Features
 
-The contract will be "Ownable". Look up how inheritance works in Solidity.
-
-This time, you will have two functions to get slice of array:
-- firstNumElements
-  - Returns the elements from the first index, up until 'num' variable
-- lastNumElements
-  - Returns theh elements starting from the 'num' index up until the end of the array
-
-These functions will be payable. "firstNumElements" will require the user to pay "0.001" and "lastNumElements", "0.002".
-
-There will be a function to update the number similar to the previous assignments, however, this function will be only callable by the owner/creator of the contract only.
-
-Finally, there will be a function to transfer all the funds from the contract to the owner of the contract. This function will also be callable only by the contract owner.
+### Smart Contract
+- **Array Storage**: Stores 10 words (Lorem ipsum text)
+- **Payable Functions**:
+  - `firstNumElements()` - Returns first N elements (costs 0.001 ETH)
+  - `lastNumElements()` - Returns elements from N to end (costs 0.002 ETH)
+- **Owner Functions**:
+  - `setNum()` - Update the array slice index
+  - `withdrawFunds()` - Withdraw all contract funds to owner
+- **View Functions**:
+  - `getWords()` - View full array
+  - `getContractBalance()` - Check contract balance
 
 ### Front-end
-- You will display the address of the owner of the contract
-- Similar to previous assignment, your address and ETH balance
-- Display the num value and the array slice
-- Necessary buttons to perform the function calls
-- Necessary input fields to use set number function
+- Display owner address and contract information
+- Show user address and ETH balance
+- Interactive buttons for all contract functions
+- Real-time balance and data updates
+- Beautiful, modern UI with gradient design
 
-Include any other necessary functions to perform the tasks.
+## Prerequisites
 
-# Environment Setup
-Run the `setup.sh` script.
+- Node.js (v14+)
+- pnpm
+- Foundry (forge, cast, anvil)
 
-Add `import "@openzeppelin/contracts/access/Ownable.sol"` to your `Counter.sol` file.
+## Quick Start
 
-Any other dependencies should be installed by the script.
-
-# Sources
-- Ownable: https://docs.openzeppelin.com/contracts/4.x/access-control
-- Payable:
-  - https://docs.alchemy.com/docs/solidity-payable-functions
-  - https://solidity-by-example.org/payable/
-- Receive and Fallback functions
-  - https://solidity-by-example.org/fallback/
-  - https://ethereum.stackexchange.com/questions/81994/what-is-the-receive-keyword-in-solidity
-- Payable functions emit events:
-  - https://solidity-by-example.org/events/
-  - https://www.tutorialspoint.com/solidity/solidity_events.htm
- 
-# Helper Functions
-Due to a recent change in OppenZeppelin's `Ownable.sol`'s code, you have to initialize your constructor as follows:
-
-```solidity
-// We don't need to define an address variable for owner.
-// Ownable does this for us and you can get the value by calling the "owner" function.
-
-constructor(address initialOwner) Ownable(initialOwner) {
-  // Other initializations here
-}
+### 1. Setup
+```bash
+chmod +x SETUP.sh
+./SETUP.sh
 ```
 
-Since our constructor now has arguments, to create a smart contract using `Foundry`, you must use the following command:
+### 2. Start Local Blockchain
+```bash
+source ~/.zshenv
+anvil
+```
+Keep this running in a separate terminal.
+
+### 3. Deploy Contract
+In a new terminal:
+```bash
+cd chain-end
+source ~/.zshenv
+forge script script/Deploy.sol:Deploy --rpc-url http://127.0.0.1:8545 --broadcast
+```
+
+Note the deployed contract address from the output.
+
+### 4. Start Front-end
+```bash
+cd front-end
+pnpm start
+```
+
+### 5. Use the Application
+1. Open browser to `http://localhost:3000`
+2. Click "Connect to Local Blockchain"
+3. Interact with the contract!
+
+## Project Structure
+
+```
+CSCE-5575-HW-2-Template/
+├── chain-end/               # Smart contract project
+│   ├── src/
+│   │   └── Counter.sol     # Main Ownable contract
+│   ├── script/
+│   │   └── Deploy.sol      # Deployment script
+│   └── lib/                # OpenZeppelin contracts
+├── front-end/              # React application
+│   ├── src/
+│   │   ├── App.tsx        # Main UI component
+│   │   └── App.css        # Styling
+│   └── public/
+├── README.md              # This file
+└── SETUP.sh              # Setup script
+```
+
+## Contract Details
+
+**Address**: `0x5FbDB2315678afecb367f032d93F642f64180aa3` (on local Anvil)
+
+**Test Account** (Auto-connected in UI):
+- Address: `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`
+- Private Key: `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80`
+- Initial Balance: 10,000 ETH
+
+## Usage Examples
+
+### Using the Web UI
+1. Connect to blockchain
+2. View current num value and array
+3. Click "Get First N Elements" (pays 0.001 ETH)
+4. Click "Get Last Elements" (pays 0.002 ETH)
+5. As owner: Update num value (0-10)
+6. As owner: Withdraw accumulated funds
+
+### Using Command Line (Alternative)
 
 ```bash
-# Use the same account's address and private key
-forge create --rpc-url http://127.0.0.1:8545 --private-key <private_key> src/Counter.sol:Counter --constructor-args <deployer_account_address>
+cd chain-end
+source ~/.zshenv
+
+# View contract data
+cast call 0x5FbDB2315678afecb367f032d93F642f64180aa3 "num()" --rpc-url http://127.0.0.1:8545
+cast call 0x5FbDB2315678afecb367f032d93F642f64180aa3 "owner()" --rpc-url http://127.0.0.1:8545
+
+# Call payable function
+cast send 0x5FbDB2315678afecb367f032d93F642f64180aa3 "firstNumElements()" \
+    --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+    --value 0.001ether \
+    --rpc-url http://127.0.0.1:8545
+
+# Owner: Set num value
+cast send 0x5FbDB2315678afecb367f032d93F642f64180aa3 "setNum(uint256)" 7 \
+    --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+    --rpc-url http://127.0.0.1:8545
 ```
 
-In order to send ETH to the functions that require it using Foundry, you can use this:
+## Technology Stack
 
-```bash
-cast call <contract_address> "your_function()" --private-key <private_key> --value 0.001ether  # Or any other ether value
-```
+- **Smart Contracts**: Solidity 0.8.13
+- **Framework**: Foundry
+- **Frontend**: React 18, TypeScript
+- **Blockchain Library**: ethers.js v6
+- **Testing Network**: Anvil (Foundry)
 
+## Assignment Requirements
+
+✅ All requirements completed:
+- [x] Ownable contract with OpenZeppelin inheritance
+- [x] Array of 10 words with slicing functionality
+- [x] Two payable functions (0.001 and 0.002 ETH)
+- [x] Owner-only setNum function
+- [x] Owner-only withdrawFunds function
+- [x] React UI displaying all required information
+- [x] Buttons for all function calls
+- [x] Input field for setting number
+
+## Troubleshooting
+
+**React app won't connect**:
+- Ensure Anvil is running on port 8545
+- Check contract is deployed
+- Verify contract address in `front-end/src/App.tsx`
+
+**Transaction fails**:
+- Ensure you have enough ETH
+- Send exact payment amounts (0.001 or 0.002 ETH)
+- Check num value is valid (0-10)
+
+**Anvil not found**:
+- Run `source ~/.zshenv`
+- Install Foundry: `curl -L https://foundry.paradigm.xyz | bash && foundryup`
+
+## Author
+
+CSCE 4575/5575 - Blockchain Course
+Instructor: Beddhu Murali
+
+## License
+
+See LICENSE file.
